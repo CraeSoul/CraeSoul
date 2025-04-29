@@ -1,0 +1,198 @@
+<xml xmlns="http://www.w3.org/1999/xhtml" collection="false">
+  <variables>
+    <variable type="" id="max_loss">Max Loss</variable>
+    <variable type="" id="target_profit">Target Profit</variable>
+    <variable type="" id="initial_stake">Initial Stake</variable>
+    <variable type="" id="current_stake">Current Stake</variable>
+  </variables>
+  <block type="trade" id="trade" x="50" y="50">
+    <field name="MARKET_LIST">synthetic_index</field>
+    <field name="SUBMARKET_LIST">random_index</field>
+    <field name="SYMBOL_LIST">R_50</field>
+    <field name="TRADETYPECAT_LIST">digits</field>
+    <field name="TRADETYPE_LIST">overunder</field>
+    <field name="TYPE_LIST">both</field>
+    <field name="CANDLEINTERVAL_LIST">1</field>
+    <field name="TIME_MACHINE_ENABLED">FALSE</field>
+    <field name="RESTARTONERROR">TRUE</field>
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="set_initials">
+        <field name="VAR" id="max_loss">Max Loss</field>
+        <value name="VALUE">
+          <block type="math_number" id="ml">
+            <field name="NUM">10</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="set_profit">
+            <field name="VAR" id="target_profit">Target Profit</field>
+            <value name="VALUE">
+              <block type="math_number" id="tp">
+                <field name="NUM">5</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="stake_init">
+                <field name="VAR" id="initial_stake">Initial Stake</field>
+                <value name="VALUE">
+                  <block type="math_number" id="stake_val">
+                    <field name="NUM">0.35</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="stake_now">
+                    <field name="VAR" id="current_stake">Current Stake</field>
+                    <value name="VALUE">
+                      <block type="variables_get" id="stake_copy">
+                        <field name="VAR" id="initial_stake">Initial Stake</field>
+                      </block>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="SUBMARKET">
+      <block type="tradeOptions" id="trade_options">
+        <field name="DURATIONTYPE_LIST">t</field>
+        <value name="DURATION">
+          <block type="math_number" id="duration">
+            <field name="NUM">5</field>
+          </block>
+        </value>
+        <value name="AMOUNT">
+          <block type="variables_get" id="stake_used">
+            <field name="VAR" id="current_stake">Current Stake</field>
+          </block>
+        </value>
+        <value name="PREDICTION">
+          <block type="math_number" id="prediction_digit">
+            <field name="NUM">3</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+
+  <block type="before_purchase" id="before" x="400" y="50">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="controls_if" id="filter">
+        <value name="IF0">
+          <block type="logic_compare" id="digit_filter">
+            <field name="OP">LTE</field>
+            <value name="A">
+              <block type="last_digit_list" id="last_digit">
+                <field name="LAST_DIGIT_LIST">1</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="number3">
+                <field name="NUM">3</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="purchase" id="buy_over">
+            <field name="PURCHASE_LIST">DIGITOVER</field>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+
+  <block type="after_purchase" id="after" x="50" y="400">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if" id="win_check">
+        <mutation else="1"></mutation>
+        <value name="IF0">
+          <block type="contract_check_result" id="check_win">
+            <field name="CHECK_RESULT">win</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="variables_set" id="reset_stake">
+            <field name="VAR" id="current_stake">Current Stake</field>
+            <value name="VALUE">
+              <block type="variables_get" id="stake_reset">
+                <field name="VAR" id="initial_stake">Initial Stake</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <block type="variables_set" id="martingale">
+            <field name="VAR" id="current_stake">Current Stake</field>
+            <value name="VALUE">
+              <block type="math_arithmetic" id="multiply">
+                <field name="OP">MULTIPLY</field>
+                <value name="A">
+                  <block type="variables_get" id="stake_current">
+                    <field name="VAR" id="current_stake">Current Stake</field>
+                  </block>
+                </value>
+                <value name="B">
+                  <block type="math_number" id="multiplier">
+                    <field name="NUM">1.5</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+          </block>
+        </statement>
+        <next>
+          <block type="controls_if" id="stop_loss">
+            <mutation else="1"></mutation>
+            <value name="IF0">
+              <block type="logic_compare" id="loss_compare">
+                <field name="OP">GTE</field>
+                <value name="A">
+                  <block type="math_single" id="abs_profit">
+                    <field name="OP">ABS</field>
+                    <value name="NUM">
+                      <block type="total_profit" id="totalp"></block>
+                    </value>
+                  </block>
+                </value>
+                <value name="B">
+                  <block type="variables_get" id="loss_limit">
+                    <field name="VAR" id="max_loss">Max Loss</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <statement name="DO0">
+              <block type="stop_bot" id="stop"></block>
+            </statement>
+            <statement name="ELSE">
+              <block type="controls_if" id="target_reached">
+                <value name="IF0">
+                  <block type="logic_compare" id="profit_target">
+                    <field name="OP">GTE</field>
+                    <value name="A">
+                      <block type="total_profit" id="totalp2"></block>
+                    </value>
+                    <value name="B">
+                      <block type="variables_get" id="profit_limit">
+                        <field name="VAR" id="target_profit">Target Profit</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <statement name="DO0">
+                  <block type="stop_bot" id="stop2"></block>
+                </statement>
+                <statement name="ELSE">
+                  <block type="trade_again" id="again"></block>
+                </statement>
+              </block>
+            </statement>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>
