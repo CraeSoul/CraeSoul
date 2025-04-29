@@ -1,0 +1,196 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <!-- UNSTOPPABLE DIFFER BOT - AUTO CHOSEN NUMBER - MAX STAKE 10 USD -->
+  <variables>
+    <variable type="" id="stake">stake</variable>
+    <variable type="" id="max_stake">max_stake</variable>
+    <variable type="" id="current_stake">current_stake</variable>
+    <variable type="" id="digits_list">digits_list</variable>
+    <variable type="" id="auto_number">auto_number</variable>
+  </variables>
+
+  <block type="trade" id="trade" x="0" y="0">
+    <field name="MARKET_LIST">synthetic_index</field>
+    <field name="SUBMARKET_LIST">random_index</field>
+    <field name="SYMBOL_LIST">1HZ50V</field>
+    <field name="TRADETYPECAT_LIST">digits</field>
+    <field name="TRADETYPE_LIST">matchesdiffers</field>
+    <field name="TYPE_LIST">DIGITDIFF</field>
+    <field name="CANDLEINTERVAL_LIST">60</field>
+    <field name="RESTARTONERROR">TRUE</field>
+
+    <statement name="INITIALIZATION">
+      <block type="variables_set">
+        <field name="VAR" id="stake">stake</field>
+        <value name="VALUE">
+          <block type="text_prompt_ext">
+            <mutation type="NUMBER"></mutation>
+            <field name="TYPE">NUMBER</field>
+            <value name="TEXT">
+              <shadow type="text">
+                <field name="TEXT">Enter base stake (e.g., 0.35)</field>
+              </shadow>
+            </value>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set">
+            <field name="VAR" id="max_stake">max_stake</field>
+            <value name="VALUE">
+              <block type="math_number">
+                <field name="NUM">10</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set">
+                <field name="VAR" id="current_stake">current_stake</field>
+                <value name="VALUE">
+                  <block type="variables_get">
+                    <field name="VAR" id="stake">stake</field>
+                  </block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="BEFOREPURCHASE">
+      <block type="variables_set">
+        <field name="VAR" id="digits_list">digits_list</field>
+        <value name="VALUE">
+          <block type="lastDigitList" />
+        </value>
+        <next>
+          <block type="lists_mode">
+            <mutation items="10"></mutation>
+            <field name="MODE">MODE</field>
+            <value name="LIST">
+              <block type="variables_get">
+                <field name="VAR" id="digits_list">digits_list</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set">
+                <field name="VAR" id="auto_number">auto_number</field>
+                <value name="VALUE">
+                  <block type="math_random_int">
+                    <value name="FROM">
+                      <block type="math_number">
+                        <field name="NUM">2</field>
+                      </block>
+                    </value>
+                    <value name="TO">
+                      <block type="math_number">
+                        <field name="NUM">7</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="SUBMARKET">
+      <block type="tradeOptions">
+        <field name="DURATIONTYPE_LIST">t</field>
+        <field name="CURRENCY_LIST">USD</field>
+        <value name="DURATION">
+          <block type="math_number">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <value name="AMOUNT">
+          <block type="variables_get">
+            <field name="VAR" id="current_stake">current_stake</field>
+          </block>
+        </value>
+        <value name="PREDICTION">
+          <block type="variables_get">
+            <field name="VAR" id="auto_number">auto_number</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+
+  <block type="after_purchase" x="0" y="400">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if">
+        <value name="IF0">
+          <block type="contract_check_result">
+            <field name="CHECK_RESULT">win</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="variables_set">
+            <field name="VAR" id="current_stake">current_stake</field>
+            <value name="VALUE">
+              <block type="variables_get">
+                <field name="VAR" id="stake">stake</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+
+        <value name="IF1">
+          <block type="contract_check_result">
+            <field name="CHECK_RESULT">loss</field>
+          </block>
+        </value>
+        <statement name="DO1">
+          <block type="variables_set">
+            <field name="VAR" id="current_stake">current_stake</field>
+            <value name="VALUE">
+              <block type="math_arithmetic">
+                <field name="OP">MULTIPLY</field>
+                <value name="A">
+                  <block type="variables_get">
+                    <field name="VAR" id="current_stake">current_stake</field>
+                  </block>
+                </value>
+                <value name="B">
+                  <block type="math_number">
+                    <field name="NUM">1.5</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="controls_if">
+                <value name="IF0">
+                  <block type="logic_compare">
+                    <field name="OP">GT</field>
+                    <value name="A">
+                      <block type="variables_get">
+                        <field name="VAR" id="current_stake">current_stake</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <block type="variables_get">
+                        <field name="VAR" id="max_stake">max_stake</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <statement name="DO0">
+                  <block type="variables_set">
+                    <field name="VAR" id="current_stake">current_stake</field>
+                    <value name="VALUE">
+                      <block type="variables_get">
+                        <field name="VAR" id="stake">stake</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>
