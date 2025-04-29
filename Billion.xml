@@ -1,0 +1,58 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <!-- UNSTOPPABLE DIFFER BOT - MANUAL CHOSEN NUMBER - MAX STAKE 20 USD -->
+  <variables>
+    <variable type="" id="stake">stake</variable>
+    <variable type="" id="max_stake">max_stake</variable>
+    <variable type="" id="chosen_number">chosen_number</variable>
+    <variable type="" id="current_stake">current_stake</variable>
+  </variables>
+
+  <block type="trade" id="trade" x="0" y="0">
+    <field name="MARKET_LIST">synthetic_index</field>
+    <field name="SUBMARKET_LIST">random_index</field>
+    <field name="SYMBOL_LIST">1HZ50V</field>
+    <field name="TRADETYPECAT_LIST">digits</field>
+    <field name="TRADETYPE_LIST">matchesdiffers</field>
+    <field name="TYPE_LIST">DIGITDIFF</field>
+    <field name="CANDLEINTERVAL_LIST">60</field>
+    <field name="RESTARTONERROR">TRUE</field>
+
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="init1">
+        <field name="VAR" id="stake">stake</field>
+        <value name="VALUE">
+          <block type="text_prompt_ext">
+            <mutation type="NUMBER"></mutation>
+            <field name="TYPE">NUMBER</field>
+            <value name="TEXT">
+              <shadow type="text">
+                <field name="TEXT">Enter base stake (e.g., 0.35)</field>
+              </shadow>
+            </value>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="init2">
+            <field name="VAR" id="max_stake">max_stake</field>
+            <value name="VALUE">
+              <block type="math_number">
+                <field name="NUM">20</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="init3">
+                <field name="VAR" id="chosen_number">chosen_number</field>
+                <value name="VALUE">
+                  <block type="text_prompt_ext">
+                    <mutation type="NUMBER"></mutation>
+                    <field name="TYPE">NUMBER</field>
+                    <value name="TEXT">
+                      <shadow type="text">
+                        <field name="TEXT">Choose digit (2-7)</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="init4">
+                    <field name="VAR"
