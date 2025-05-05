@@ -1,0 +1,118 @@
+//+------------------------------------------------------------------+
+//| Expert Advisor: Reverse D'Alembert on Stat Reset                |
+//+------------------------------------------------------------------+
+#property strict
+
+// Input parameters
+input double BaseLotSize     = 0.1;
+input double LotStep         = 0.1;
+input int    MaxLossStreak   = 5;
+input int    Slippage        = 3;
+input double StopLoss        = 50;
+input double TakeProfit      = 100;
+input int    MagicNumber     = 123456;
+
+// Global variables
+int    StepCount     = 0;
+int    LossStreak    = 0;
+bool   LastTradeWasWin = false;
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+  {
+   Print("Reverse D'Alembert EA Initialized");
+   return(INIT_SUCCEEDED);
+  }
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+  {
+   Print("EA Deinitialized");
+  }
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+  {
+   // Check if a trade is already open
+   if (OrdersTotal() > 0) return;
+
+   // Update results from last trade
+   CheckLastTradeResult();
+
+   // Calculate lot size
+   double lot = NormalizeDouble(BaseLotSize + (StepCount * LotStep), 2);
+   lot = MathMax(lot, 0.01);
+
+   // Example entry condition (placeholder: always true)
+   if (IsNewCandle())  // Replace with real signal
+     {
+      int ticket = OrderSend(Symbol(), OP_BUY, lot, Ask, Slippage,
+                             Ask - StopLoss * Point,
+                             Ask + TakeProfit * Point,
+                             "Reverse D'Alembert", MagicNumber, 0, clrBlue);
+      if (ticket > 0)
+         Print("Buy order placed: Lot=", lot, " Step=", StepCount);
+      else
+         Print("OrderSend failed. Error: ", GetLastError());
+     }
+  }
+
+//+------------------------------------------------------------------+
+//| Check last closed trade and update logic                         |
+//+------------------------------------------------------------------+
+void CheckLastTradeResult()
+  {
+   for (int i = OrdersHistoryTotal() - 1; i >= 0; i--)
+     {
+      if (OrderSelect(i, SELECT_BY_POS, MODE_HISTORY))
+        {
+         if (OrderSymbol() == Symbol() && OrderMagicNumber() == MagicNumber)
+           {
+            if (OrderType() == OP_BUY || OrderType() == OP_SELL)
+              {
+               if (OrderProfit() >= 0)
+                 {
+                  StepCount++;
+                  LossStreak = 0;
+                  LastTradeWasWin = true;
+                 }
+               else
+                 {
+                  StepCount = MathMax(0, StepCount - 1);
+                  LossStreak++;
+                  LastTradeWasWin = false;
+                 }
+
+               if (LossStreak >= MaxLossStreak)
+                 {
+                  StepCount = 0;
+                  LossStreak = 0;
+                  Print("Loss streak exceeded. Resetting strategy.");
+                 }
+               break;
+              }
+           }
+        }
+     }
+  }
+
+//+------------------------------------------------------------------+
+//| Check for new candle (placeholder)                               |
+//+------------------------------------------------------------------+
+datetime lastBarTime = 0;
+bool IsNewCandle()
+  {
+   if (Time[0] != lastBarTime)
+     {
+      lastBarTime = Time[0];
+      return true;
+     }
+   return false;
+  }
+//+------------------------------------------------------------------+
